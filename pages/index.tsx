@@ -7,12 +7,16 @@ export default function Home() {
   const [handleId, setHandleId] = useState<number|null>(null);
   const [positions, setPositions] = useState<GeolocationPosition[]>([]);
 
+  function addPosition(position: GeolocationPosition) {
+    setPositions([...positions, position]);
+  }
+
   // Start watching the device's location
   function startTracking() {
-    if (navigator.geolocation) {
+    if (navigator.geolocation && !handleId) {
       console.log('Starting to track the location....');
       const handleId = navigator.geolocation.watchPosition(position => {
-        setPositions([...positions, position]);
+        addPosition(position);
         setMessage('');
       }, error => {
         if (error.code === 1) {
