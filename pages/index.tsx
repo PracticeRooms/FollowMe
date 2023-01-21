@@ -87,8 +87,8 @@ export default function Home() {
             </tr>
           </thead>
           <tbody>
-            {positions.map(position => (
-              <tr key={position.timestamp}>
+            {positions.map((position, idx) => (
+              <tr key={position.timestamp + idx}>
                 <td>{position.coords.latitude}</td>
                 <td>{position.coords.longitude}</td>
                 <td>{position.coords.speed}</td>
