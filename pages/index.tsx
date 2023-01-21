@@ -1,22 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head'
-import CoordinatesModel from '@/src/models/Coordinates';
 
 export default function Home() {
   const [message, setMessage] = useState<string>('');
-  const [handleId, setHandleId] = useState<number|null>(null);
+  const [time, setTime] = useState<number>(0);
   const [positions, setPositions] = useState<GeolocationPosition[]>([]);
+  const [isTracking, toggleTrackingFlag] = useState<boolean>(false);
 
-  function addPosition(position: GeolocationPosition) {
-    setPositions([...positions, position]);
-  }
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTime(Date.now());
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
-  // Start watching the device's location
-  function startTracking() {
-    if (navigator.geolocation && !handleId) {
-      console.log('Starting to track the location....');
-      const handleId = navigator.geolocation.watchPosition(position => {
-        addPosition(position);
+  useEffect(() => {
+    if (isTracking) {
+      navigator.geolocation.getCurrentPosition(position => {
+        console.log([...positions, position]);
+        setPositions([...positions, position]);
         setMessage('');
       }, error => {
         if (error.code === 1) {
@@ -33,18 +35,19 @@ export default function Home() {
         timeout: 5000,
         maximumAge: 0 // Do not use cached locations
       });
-
-      setHandleId(handleId);
-    } else {
-      setMessage('Could not get the current position as the browser does not support this functionality');
     }
+  }, [isTracking, time]);
+
+  // Start watching the device's location
+  function startTracking() {
+    toggleTrackingFlag(true);
   }
 
   // Stop tracking the device's location
   async function stopTracking() {
-    if (navigator.geolocation && handleId) {
+    if (isTracking) {
       console.log('....ending the location tracking');
-      navigator.geolocation.clearWatch(handleId);
+      toggleTrackingFlag(false);
       await fetch('/api/coordinates', {
         method: 'POST',
         headers: {
